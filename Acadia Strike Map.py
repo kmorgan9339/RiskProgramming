@@ -49,6 +49,8 @@ datelist = pd.date_range(date(dt.year, dt.month + 1, 1),
 strikelist = np.arange(20, 100, 0.50)
 
 
+# ==== Calls ====
+
 # Yesterday
 query = """select
 TB.ContractStart,
@@ -57,7 +59,8 @@ TB.Quantity
 from trade_blotter TB
 where
 TB.ContractStart > '""" + dt_1.strftime("%Y-%m-%d") + """' and
-TB.Ticker in (113, 128)
+TB.Ticker in (113, 128) and
+TB.CP = 'C'
 order by TB.ContractStart, TB.Quantity"""
 
 df_options = psql.read_sql_query(query, cnx)
@@ -74,8 +77,40 @@ for i in range(len(datelist) - 1):
                 q[j, i] = q[j, i] + df_options['Quantity'][k]
 
 
-df_power_strike_map = pd.DataFrame(q, index=strikelist,
-                                   columns=datelist).sort_index(
+df_power_call_strike_map = pd.DataFrame(q, index=strikelist,
+                                        columns=datelist).sort_index(
+                                           ascending=False)
+
+# ==== Puts ====
+
+# Yesterday
+query = """select
+TB.ContractStart,
+TB.Strike,
+TB.Quantity
+from trade_blotter TB
+where
+TB.ContractStart > '""" + dt_1.strftime("%Y-%m-%d") + """' and
+TB.Ticker in (113, 128) and
+TB.CP = 'P'
+order by TB.ContractStart, TB.Quantity"""
+
+df_options = psql.read_sql_query(query, cnx)
+
+q = np.zeros((len(strikelist), len(datelist)))
+
+for i in range(len(datelist) - 1):
+    for j in range(len(strikelist) - 1):
+        for k in range(len(df_options)):
+            if (df_options['ContractStart'][k] >= datelist[i] and
+                    df_options['ContractStart'][k] < datelist[i + 1] and
+                    df_options['Strike'][k] >= strikelist[j] and
+                    df_options['Strike'][k] < strikelist[j + 1]):
+                q[j, i] = q[j, i] + df_options['Quantity'][k]
+
+
+df_power_put_strike_map = pd.DataFrame(q, index=strikelist,
+                                        columns=datelist).sort_index(
                                            ascending=False)
 
 #%% +++++++ Natural Gas Monthy ++++++++
@@ -87,6 +122,7 @@ datelist = pd.date_range(date(dt.year, dt.month + 1, 1),
 # Make X headers
 strikelist = np.arange(2, 4, 0.01)
 
+# ==== Calls =====
 
 # Yesterday
 query = """select
@@ -96,7 +132,8 @@ TB.Quantity
 from trade_blotter TB
 where 
 TB.ContractStart > '""" + dt_1.strftime("%Y-%m-%d") + """' and
-TB.Ticker = 98
+TB.Ticker = 98 and
+TB.CP = 'C'
 order by TB.ContractStart, TB.Quantity"""
 
 df_options = psql.read_sql_query(query, cnx)
@@ -114,9 +151,43 @@ for i in range(len(datelist) - 1):
 
 
 # put matrix into dataframe
-df_natgas_strike_map = pd.DataFrame(q, index=strikelist,
-                                   columns=datelist).sort_index(
+df_natgas_call_strike_map = pd.DataFrame(q, index=strikelist,
+                                         columns=datelist).sort_index(
                                            ascending=False)
+
+# ==== Puts =====
+
+# Yesterday
+query = """select
+TB.ContractStart,
+TB.Strike,
+TB.Quantity
+from trade_blotter TB
+where 
+TB.ContractStart > '""" + dt_1.strftime("%Y-%m-%d") + """' and
+TB.Ticker = 98 and
+TB.CP = 'P'
+order by TB.ContractStart, TB.Quantity"""
+
+df_options = psql.read_sql_query(query, cnx)
+
+# create strike map
+q = np.zeros((len(strikelist),len(datelist)))
+for i in range(len(datelist) - 1):
+    for j in range(len(strikelist) - 1):
+        for k in range(len(df_options)):
+            if (df_options['ContractStart'][k] >= datelist[i] and
+                    df_options['ContractStart'][k] < datelist[i + 1] and
+                    df_options['Strike'][k] >= strikelist[j] and
+                    df_options['Strike'][k] < strikelist[j + 1]):
+                q[j, i] = q[j, i] + df_options['Quantity'][k]
+
+
+# put matrix into dataframe
+df_natgas_put_strike_map = pd.DataFrame(q, index=strikelist,
+                                         columns=datelist).sort_index(
+                                           ascending=False)
+
 
 
 
