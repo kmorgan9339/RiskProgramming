@@ -252,7 +252,7 @@ for i in range(df_scenarios.shape[1]):
                               df_nonlinear['ImpVol'][j] / 100,
                               0.0237,
                               ql.DateParser.parseFormatted(
-                                    dt_1.strftime('%Y-%m-%d'), '%Y-%m-%d'),
+                                    dt.strftime('%Y-%m-%d'), '%Y-%m-%d'),
                               ql.DateParser.parseFormatted(
                                     df_nonlinear['Expiry'][j].
                                     strftime('%Y-%m-%d'), '%Y-%m-%d'),
